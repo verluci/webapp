@@ -10,6 +10,7 @@
     $servername = "localhost";
     $username = "root";
     $database = "project21";
+    $password = "";
 
     while($startTime <= $endTime)
     {
@@ -29,13 +30,15 @@
             $m = rand(20, 50);
         }
 
-        $temp = 16;
-        $licht = 90;
+        $temp = 16*$m/100;
+        $licht = 90*$m/100;
         echo $startTime->format('H:i'),' ', ($licht*$m/100),' ', ($temp*$m/100), ' ', $m, "\r\n";
 
-        $conn = new mysqli($servername, $username, db_name=$database);
+        $conn = mysqli_connect($servername, $username, $password, $database);
 
+        $sql = "INSERT INTO data (time, temperatuur, licht, positie) VALUES ($startTime, $temperatuur, $licht, 24)";
 
+        $conn->$sql;
 
         $conn->close();
     $startTime->add(new \DateInterval('PT'.$timeStep.'M'));
