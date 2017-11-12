@@ -4,7 +4,7 @@
  * Houdt vaag rekening met een dag en nacht ritme, maar geeft wel erg spikey waardes
  */
     $startTime  = new \DateTime('2017-11-01 00:00');
-    $endTime    = new \DateTime('2017-11-11 23:55');
+    $endTime    = new \DateTime('2017-11-01 00:01');
     $timeStep   = 1;
     $timeArray  = array();
     $servername = "localhost";
@@ -30,13 +30,21 @@
             $m = rand(20, 50);
         }
 
-        $temp = 16*$m/100;
-        $licht = 90*$m/100;
+        $temp = (int)(16*$m/100);
+        $licht = (int)90*$m/100;
         echo $startTime->format('H:i'),' ', ($licht*$m/100),' ', ($temp*$m/100), ' ', $m, "\r\n";
+
+        if($licht > 55){
+            $pos = 0;
+        } else{
+            $pos = 24;
+        }
+
+        $newDate = $startTime->format("Y-m-d H:i:s");
 
         $conn = mysqli_connect($servername, $username, $password, $database);
 
-        $sql = "INSERT INTO data (time, temperatuur, licht, positie) VALUES ($startTime, $temperatuur, $licht, 24)";
+        $sql = "INSERT INTO data (time, temperatuur, licht, positie) VALUES ($newDate, $temp, $licht, $pos)";
 
         $conn->$sql;
 
