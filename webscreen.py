@@ -17,6 +17,11 @@ def test():
     count = int(pd.read_sql('SELECT COUNT(time) FROM data', con=db)['COUNT(time)'][0])
     shouldUpdate = False
     app = dash.Dash()
+    colors = {
+        'background': '#0a0908',
+        'text': '#BBBBBB',
+        'graphbg': '#201E1C'
+    }
     app.css.append_css({
         "external_url": "https://rawgit.com/verluci/public_stuff/master/plotly_webapp_style.css"
     })
@@ -24,15 +29,14 @@ def test():
         html.Div([
             html.Div(className='container', children=[
                 #header, titel
-                html.Section(className='header', style={'padding-bottom': 50}, children=[
+                html.Section(className='header', style={'margin': 50}, children=[
                     html.H1(children='Test'),
                 ]),
                 #body
-                html.Div(className='row', children=[
+                html.Div(className='row', style={'margin': 5}, children=[
                     #blok 1
-                    html.Div(className='eight columns', style={'padding': 15, 'background-color': 'LightSlateGrey '}, children=[
+                    html.Div(className='eight columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
                         html.Div(children=[
-                            html.H3('Temperatuur'),
                             #grafiek temp
                             dcc.Graph(
                                 animate='true',
@@ -45,14 +49,23 @@ def test():
                                             mode='lines'
                                         )
                                     ],
-                                }
+                                    'layout': {
+                                        'plot_bgcolor': colors['graphbg'],
+                                        'paper_bgcolor': colors['background'],
+                                        'font': {
+                                            'color': colors['text']
+                                        }
+                                    }
+                                },
+
                             ),
                             dcc.Interval(
                                 id='temp-interval',
                                 interval=3000),
                         ]),
-                        html.Div(children=[
+                        html.Div(style={}, children=[
                             dcc.Slider(
+
                                 id='temp-slider',
                                 min=-30,
                                 max=60,
@@ -68,7 +81,7 @@ def test():
                         ]),
                     ]),
                     #blok 2
-                    html.Div(className='four columns', style={'padding': 15, 'background-color': 'LightSlateGrey '}, children=[
+                    html.Div(className='four columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
                         html.Div(className='manualButton', children=[
                             #manual knop
                             dcc.RadioItems(
@@ -95,9 +108,11 @@ def test():
                             html.Br(),
                             html.Div(id='pos-output-container')
                         ]),
-                    ]),
+                    ])
+                ]),
+                html.Div(className='row', style={'margin': 5}, children=[
                     #blok 3
-                    html.Div(className='eight columns', style={'padding': 15, 'background-color': 'LightSlateGrey '}, children=[
+                    html.Div(className='eight columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
                         #grafiek licht
                         html.Div(children=[
                             dcc.Graph(
@@ -111,6 +126,13 @@ def test():
                                             mode='lines'
                                         )
                                     ],
+                                    'layout': {
+                                        'plot_bgcolor': colors['graphbg'],
+                                        'paper_bgcolor': colors['background'],
+                                        'font': {
+                                            'color': colors['text']
+                                        }
+                                    }
                                 }
                             ),
                             dcc.Interval(
