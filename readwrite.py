@@ -29,6 +29,8 @@ class ReadWrite:
             self.y = self.settings["settings"]["pos"]
             self.y = self.y+100
             self.x = 1
+        else:
+            self.y = self.settings['settings']['pos']
         temp = self.settings["settings"]["temp"]+30
         s = struct.Struct('B')
         packed_data = s.pack(temp)

@@ -49,21 +49,23 @@ def test():
                             ),
                             dcc.Interval(
                                 id='temp-interval',
-                                interval=5000),
+                                interval=3000),
                         ]),
-                        dcc.Slider(
-                            id='temp-slider',
-                            min=-30,
-                            max=60,
-                            step=1,
-                            value=settings["settings"]["temp"],
-                            marks={
-                                -30: "-30c",
-                                60: "60c"
-                            }
-                        ),
-                        html.Br(),
-                        html.Div(id='temp-output-container')
+                        html.Div(children=[
+                            dcc.Slider(
+                                id='temp-slider',
+                                min=-30,
+                                max=60,
+                                step=1,
+                                value=settings["settings"]["temp"],
+                                marks={
+                                    -30: "-30c",
+                                    60: "60c"
+                                }
+                            ),
+                            html.Br(),
+                            html.Div(id='temp-output-container')
+                        ]),
                     ]),
                     #blok 2
                     html.Div(className='four columns', style={'padding': 15, 'background-color': 'LightSlateGrey '}, children=[
@@ -113,7 +115,7 @@ def test():
                             ),
                             dcc.Interval(
                                 id='licht-interval',
-                                interval=5000),
+                                interval=7000),
                         ]),
                         html.Div(children=[
                             dcc.Slider(
@@ -138,6 +140,43 @@ def test():
     #    [dash.dependencies.Input('changeToButton', 'children')]
     #)
 
+
+
+    @app.callback(Output('temp-graph', 'figure'),
+                  events=[Event('temp-interval', 'interval')])
+    def update_graph_live():
+        nonlocal count
+        nonlocal df
+        nonlocal shouldUpdate
+        dbn = dbs.connect(host="localhost", user="root", db="project21")
+        newcount = pd.read_sql('SELECT COUNT(time) FROM data', con=dbn)['COUNT(time)'][0]
+        toreadout = newcount - count
+        if (toreadout > 0):
+            shouldUpdate = True
+            df2 = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT %s' % toreadout, con=dbn)
+            count = newcount
+            df = df.append(df2, ignore_index=True)
+        figure = {
+            'data': [
+                go.Scatter(
+                    x=df['time'],
+                    y=df['temperatuur'],
+                    mode='lines'
+                )
+            ],
+        }
+        return figure
+
+    @app.callback(
+        dash.dependencies.Output('temp-output-container', 'children'),
+        [dash.dependencies.Input('temp-slider', 'value')])
+    def update_output(value):
+        settings["settings"]["temp"] = value
+        with open("settings.json", "w") as jsonFile:
+            json.dump(settings, jsonFile)
+            jsonFile.truncate()
+        return 'De temperatuurtreshold is {}c'.format(value)
+
     @app.callback(
         dash.dependencies.Output('manual-output-container', 'children'),
         [dash.dependencies.Input('manualMode', 'value')])
@@ -153,26 +192,6 @@ def test():
         return 'momenteel {} modus'.format(hand)
 
     @app.callback(
-        dash.dependencies.Output('licht-output-container', 'children'),
-        [dash.dependencies.Input('licht-slider', 'value')])
-    def update_output(value):
-        settings["settings"]["licht"] = value
-        with open("settings.json", "w") as jsonFile:
-            json.dump(settings, jsonFile)
-            jsonFile.truncate()
-        return 'Het doek gaat omlaag bij een lichtpercetage van {}%'.format(value)
-
-    @app.callback(
-        dash.dependencies.Output('temp-output-container', 'children'),
-        [dash.dependencies.Input('temp-slider', 'value')])
-    def update_output(value):
-        settings["settings"]["temp"] = value
-        with open("settings.json", "w") as jsonFile:
-            json.dump(settings, jsonFile)
-            jsonFile.truncate()
-        return 'De temperatuurtreshold is {}c'.format(value)
-
-    @app.callback(
         dash.dependencies.Output('pos-output-container', 'children'),
         [dash.dependencies.Input('pos-slider', 'value')])
     def update_output(value):
@@ -182,48 +201,30 @@ def test():
             jsonFile.truncate()
         return 'Zet het doek op {}cm van de grond'.format(value)
 
-    @app.callback(Output('temp-graph', 'figure'),
-                  events=[Event('temp-interval', 'interval')])
-    def update_graph_live():
-        nonlocal count
-        nonlocal df
-        nonlocal shouldUpdate
-        dbn = dbs.connect(host="localhost", user="root", db="project21")
-        newcount = pd.read_sql('SELECT COUNT(time) FROM data', con=dbn)['COUNT(time)'][0]
-        toreadout = newcount-count
-        if(toreadout > 0):
-            shouldUpdate = True
-            df2 = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT %s' % toreadout, con=dbn)
-            count = newcount
-            df = df.append(df2, ignore_index=True)
-            figure = {
-                'data': [
-                    go.Scatter(
-                        x=df['time'],
-                        y=df['temperatuur'],
-                        mode='lines'
-                    )
-                ],
-            }
-            return figure
 
     @app.callback(Output('licht-graph', 'figure'),
                   events=[Event('licht-interval', 'interval')])
     def update_graph_live():
-        nonlocal shouldUpdate
-        if(shouldUpdate == True):
-            shouldUpdate = False
-            figure = {
-                'data': [
-                    go.Scatter(
-                        x=df['time'],
-                        y=df['licht'],
-                        mode='lines'
-                    )
-                ],
-            }
-            return figure
+        figure = {
+            'data': [
+                go.Scatter(
+                    x=df['time'],
+                    y=df['licht'],
+                    mode='lines'
+                )
+            ],
+        }
+        return figure
 
+    @app.callback(
+        dash.dependencies.Output('licht-output-container', 'children'),
+        [dash.dependencies.Input('licht-slider', 'value')])
+    def update_output(value):
+        settings["settings"]["licht"] = value
+        with open("settings.json", "w") as jsonFile:
+            json.dump(settings, jsonFile)
+            jsonFile.truncate()
+        return 'Het doek gaat omlaag bij een lichtpercetage van {}%'.format(value)
 
     app.run_server(debug=True)
 
