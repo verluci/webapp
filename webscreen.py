@@ -236,7 +236,7 @@ def test():
             json.dump(settings, jsonFile)
             jsonFile.truncate()
         return 'De temperatuurtreshold is {}°C'.format(value)
-
+    
     @app.callback(
         dash.dependencies.Output('manual-output-container', 'children'),
         [dash.dependencies.Input('manualMode', 'value')])
