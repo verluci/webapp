@@ -16,11 +16,6 @@ def test():
     df = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT 10080', con=db)
     count = int(pd.read_sql('SELECT COUNT(time) FROM data', con=db)['COUNT(time)'][0])
     shouldUpdate = False
-    if(settings['settings']['manual']==True):
-        manualButtonValue = "Handmatige besturing staat aan."
-    else:
-        manualButtonValue = "Automatische besturing staat aan."
-
     app = dash.Dash()
     app.css.append_css({
         "external_url": "https://rawgit.com/verluci/public_stuff/master/plotly_webapp_style.css"
@@ -36,24 +31,26 @@ def test():
                 html.Div(className='row', children=[
                     #blok 1
                     html.Div(className='eight columns', style={'padding': 15, 'background-color': 'LightSlateGrey '}, children=[
-                        html.H3('Temperatuur'),
-                        #grafiek temp
-                        dcc.Graph(
-                            animate='true',
-                            id='temp-graph',
-                            figure={
-                                'data': [
-                                    go.Scatter(
-                                        x=df['time'],
-                                        y=df['temperatuur'],
-                                        mode='lines'
-                                    )
-                                ],
-                            }
-                        ),
-                        dcc.Interval(
-                            id='temp-interval',
-                            interval=5000),
+                        html.Div(children=[
+                            html.H3('Temperatuur'),
+                            #grafiek temp
+                            dcc.Graph(
+                                animate='true',
+                                id='temp-graph',
+                                figure={
+                                    'data': [
+                                        go.Scatter(
+                                            x=df['time'],
+                                            y=df['temperatuur'],
+                                            mode='lines'
+                                        )
+                                    ],
+                                }
+                            ),
+                            dcc.Interval(
+                                id='temp-interval',
+                                interval=5000),
+                        ]),
                         dcc.Slider(
                             id='temp-slider',
                             min=-30,
@@ -84,49 +81,52 @@ def test():
                             html.P('De huidige temperatuur is'),
                             html.P('De huidige lichtintensiteit is')
                         ]),
-                        dcc.Slider(
-                            id='pos-slider',
-                            min=0,
-                            max=settings["settings"]["maxpos"],
-                            step=1,
-                            value=settings["settings"]["pos"],
-                            marks={(i*5): '{}'.format(5 * i) for i in range(int(settings["settings"]["maxpos"]/5+1))},
-                        ),
-                        html.Br(),
-                        html.Div(id='pos-output-container')
-
+                        html.Div(children=[
+                            dcc.Slider(
+                                id='pos-slider',
+                                min=0,
+                                max=settings["settings"]["maxpos"],
+                                step=1,
+                                value=settings["settings"]["pos"],
+                                marks={(i*5): '{}'.format(5 * i) for i in range(int(settings["settings"]["maxpos"]/5+1))},
+                            ),
+                            html.Br(),
+                            html.Div(id='pos-output-container')
+                        ]),
                     ]),
                     #blok 3
                     html.Div(className='eight columns', style={'padding': 15, 'background-color': 'LightSlateGrey '}, children=[
                         #grafiek licht
-                        dcc.Graph(
-                            animate='true',
-                            id='licht-graph',
-                            figure={
-                                'data': [
-                                    go.Scatter(
-                                        x=df['time'],
-                                        y=df['licht'],
-                                        mode='lines'
-                                    )
-                                ],
-                            }
-                        ),
-                        dcc.Interval(
-                            id='licht-interval',
-                            interval=5000),
-                        dcc.Slider(
-                            id='light-slider',
-                            min=0,
-                            max=100,
-                            step=1,
-                            value=settings["settings"]["licht"],
-                            marks={(i*10): '{}'.format(10 * i) for i in range(11)}
-                        ),
-                        html.Br(),
-                            html.Div(id='light-output-container')
-
-
+                        html.Div(children=[
+                            dcc.Graph(
+                                animate='true',
+                                id='licht-graph',
+                                figure={
+                                    'data': [
+                                        go.Scatter(
+                                            x=df['time'],
+                                            y=df['licht'],
+                                            mode='lines'
+                                        )
+                                    ],
+                                }
+                            ),
+                            dcc.Interval(
+                                id='licht-interval',
+                                interval=5000),
+                        ]),
+                        html.Div(children=[
+                            dcc.Slider(
+                                id='licht-slider',
+                                min=0,
+                                max=100,
+                                step=1,
+                                value=settings["settings"]["licht"],
+                                marks={(i*10): '{}'.format(10 * i) for i in range(11)}
+                            ),
+                            html.Br(),
+                            html.Div(id='licht-output-container')
+                        ])
                     ])
                 ])
             ])
@@ -153,8 +153,8 @@ def test():
         return 'momenteel {} modus'.format(hand)
 
     @app.callback(
-        dash.dependencies.Output('light-output-container', 'children'),
-        [dash.dependencies.Input('light-slider', 'value')])
+        dash.dependencies.Output('licht-output-container', 'children'),
+        [dash.dependencies.Input('licht-slider', 'value')])
     def update_output(value):
         settings["settings"]["licht"] = value
         with open("settings.json", "w") as jsonFile:

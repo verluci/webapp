@@ -45,8 +45,8 @@ class ReadWrite:
     
     def read(self):
         self.readOut = self.ser.read(3)
-        latestL = struct.unpack('B', self.readOut[0:1])[0] #leest de lichtintensiteit uit
-        latestT = struct.unpack('B', self.readOut[2:3])[0] #leest de temperatuur uit
+        latestT = struct.unpack('B', self.readOut[0:1])[0] #leest de temp uit
+        latestL = struct.unpack('B', self.readOut[2:3])[0] #leest de licht uit
         latestP = struct.unpack('b', self.readOut[1:2])[0] #leest de positie van het scherm uit
         db = dbs.connect(host="localhost", user="root", db="project21")
         c = db.cursor()
