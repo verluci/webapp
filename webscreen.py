@@ -53,9 +53,13 @@ def test():
                                         'plot_bgcolor': colors['graphbg'],
                                         'paper_bgcolor': colors['background'],
                                         'font': {
-                                            'color': colors['text']
+                                            'color': colors['text']},
+                                        'margin': {
+                                            't': 30,
+                                            'l': 25,
+                                            'r': 15
                                         }
-                                    }
+                                    },
                                 },
 
                             ),
@@ -74,7 +78,7 @@ def test():
                                 marks={
                                     -30: "-30c",
                                     60: "60c"
-                                }
+                                },
                             ),
                             html.Br(),
                             html.Div(id='temp-output-container')
@@ -131,13 +135,18 @@ def test():
                                         'paper_bgcolor': colors['background'],
                                         'font': {
                                             'color': colors['text']
+                                        },
+                                        'margin': {
+                                            't': 30,
+                                            'l': 25,
+                                            'r': 15
                                         }
                                     }
                                 }
                             ),
                             dcc.Interval(
                                 id='licht-interval',
-                                interval=7000),
+                                interval=3000),
                         ]),
                         html.Div(children=[
                             dcc.Slider(
@@ -184,7 +193,8 @@ def test():
                     x=df['time'],
                     y=df['temperatuur'],
                     mode='lines'
-                )
+                ),
+            #go.Layout(margin=dict(t=0))
             ],
         }
         return figure
@@ -233,7 +243,8 @@ def test():
                     x=df['time'],
                     y=df['licht'],
                     mode='lines'
-                )
+                ),
+            #go.Layout(margin=dict(t=50))
             ],
         }
         return figure
@@ -248,6 +259,6 @@ def test():
             jsonFile.truncate()
         return 'Het doek gaat omlaag bij een lichtpercetage van {}%'.format(value)
 
-    app.run_server(debug=True)
+    app.run_server()
 
 test()
