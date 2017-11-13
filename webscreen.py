@@ -179,12 +179,26 @@ def test():
                             html.Div(id='licht-output-container')
                         ])
                     ]),
-                    html.Div(className='four columns', style={}, children=[
+                    html.Div(className='four columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
                         dcc.Graph(
-                            id='pie-chart',
+                            id='zon-per-dag',
                             figure={
-                                'data': [1, 2],
-                                'labels': ['a', 'b']
+                                'data': [
+                                    {'x': [1], 'y': [licht], 'type': 'bar', 'name': 'zonuren per dag'},
+                                    {'x': [1], 'y': [totaal], 'type': 'bar', 'name': 'donker per dag'}
+                                ],
+                                'layout': {
+                                    'barmode': 'stack',
+                                    'plot_bgcolor': colors['graphbg'],
+                                    'paper_bgcolor': colors['background'],
+                                    'font': {
+                                        'color': colors['text']},
+                                    'margin': {
+                                        't': 30,
+                                        'l': 25,
+                                        'r': 15
+                                    }
+                                }
                             }
                         )
                     ]),
