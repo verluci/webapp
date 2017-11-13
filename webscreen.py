@@ -16,24 +16,26 @@ def test():
     df = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT %s' % settings["settings"]["limit"], con=db)
     count = int(pd.read_sql('SELECT COUNT(time) FROM data', con=db)['COUNT(time)'][0])
     #dfl = pd.read_sql('SELECT * FROM superlicht LIMIT 7', con=db)
-    licht = 29
-    totaal = 50
-    totaal = totaal - licht
+
     #for i in range(7):
     #    licht = licht + dfl['zonnig'].iloc[i]
     #    totaal = totaal + dfl['total_licht'].iloc[i]
+    #
+    totaal = 300
+    licht = 100
+    donker  = totaal - licht
+    licht = licht/totaal*24
+    donker = donker/totaal*24
+
     shouldUpdate = False
     auto = False
     def updateAuto():
         nonlocal auto
         if settings['settings']['manual'] == False:
             auto = False
-            print("aardapple")
         elif settings['settings']['manual'] == True:
             auto = True
-            print("tomaata")
     updateAuto()
-
     app = dash.Dash()
     colors = {
         'background': '#0a0908',
@@ -44,7 +46,7 @@ def test():
         "external_url": "https://rawgit.com/verluci/public_stuff/master/plotly_webapp_style.css"
     })
     app.title = "Smart zonnescherm"
-    app.layout = html.Div(style={}, children=[
+    app.layout = html.Div(style={'background-color': '#BBBBBB'}, children=[
         html.Div([
             html.Div(className='container', children=[
                 #header, titel
@@ -58,7 +60,7 @@ def test():
                         html.Div(children=[
                             #grafiek temp
                             dcc.Graph(
-                                animate='true',
+                                animate=settings["settings"]["animate"],
                                 id='temp-graph',
                                 figure={
                                     'data': [
@@ -130,15 +132,36 @@ def test():
                             html.Div(id='pos-output-container')
                         ]),
                     ]),
+                    #blok 4
+                    html.Div(className='four columns', style={'padding': 15, 'margin-top': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
+                            html.Div(className='buttons', children=[
+                                html.Div(id='animate-output-container'),
+                                dcc.RadioItems(
+                                    id='animateTF',
+                                    options=[
+                                        {'label': 'Aan', 'value': False},
+                                        {'label': 'Uit', 'value': True},
+                                    ],
+                                    value=settings["settings"]["animate"],
+                                ),
+                            ]),
+                        html.Div(className='currentvalues')#, children=[
+                            #html.P('Het is momenteel {}°C'.format(df['temperatuur'].iloc[-1])),
+                            #html.P('en de lichtintensiteit is {}%'.format(df['licht'].iloc[-1]))
+                        ]),
+                        dcc.Interval(
+                            id='currentvalues',
+                            interval=1000),
 
+                    ])
                 ]),
                 html.Div(className='row', style={'margin': 5}, children=[
-                    #blok 4
+                    #blok 5
                     html.Div(className='eight columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
                         #grafiek licht
                         html.Div(children=[
                             dcc.Graph(
-                                animate='true',
+                                animate=settings["settings"]["animate"],
                                 id='licht-graph',
                                 figure={
                                     'data': [
@@ -179,13 +202,15 @@ def test():
                             html.Div(id='licht-output-container')
                         ])
                     ]),
+                    #blok 6
                     html.Div(className='four columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
+                        html.H5('Verdeling zonuren'),
                         dcc.Graph(
                             id='zon-per-dag',
                             figure={
                                 'data': [
                                     {'x': [1], 'y': [licht], 'type': 'bar', 'name': 'zonuren per dag'},
-                                    {'x': [1], 'y': [totaal], 'type': 'bar', 'name': 'donker per dag'}
+                                    {'x': [1], 'y': [donker], 'type': 'bar', 'name': 'uren donker per dag'}
                                 ],
                                 'layout': {
                                     'barmode': 'stack',
@@ -238,8 +263,19 @@ def test():
                     y=df['temperatuur'],
                     mode='lines'
                 ),
-            #go.Layout(margin=dict(t=0))
             ],
+            'layout': {
+                'plot_bgcolor': colors['graphbg'],
+                'paper_bgcolor': colors['background'],
+                'font': {
+                    'color': colors['text']
+                },
+                'margin': {
+                    't': 30,
+                    'l': 25,
+                    'r': 15
+                }
+            }
         }
         return figure
 
@@ -252,7 +288,7 @@ def test():
             json.dump(settings, jsonFile)
             jsonFile.truncate()
         return 'De temperatuurtreshold is {}°C'.format(value)
-    
+
     @app.callback(
         dash.dependencies.Output('manual-output-container', 'children'),
         [dash.dependencies.Input('manualMode', 'value')])
@@ -266,6 +302,25 @@ def test():
             json.dump(settings, jsonFile)
             jsonFile.truncate()
         return 'Momenteel staat het doek in {} modus'.format(hand)
+
+    @app.callback(
+        dash.dependencies.Output('animate-output-container', 'children'),
+        [dash.dependencies.Input('animateTF', 'value')])
+    def update_output(value):
+        settings["settings"]["animate"] = value
+        with open("settings.json", "w") as jsonFile:
+            json.dump(settings, jsonFile)
+            jsonFile.truncate()
+        return 'Zet live grafieken (na verversing):'
+
+    @app.callback(
+        dash.dependencies.Output('currentvalues', 'children'),
+        [dash.dependencies.Input('currentvalue', 'Event')])
+    def update_currentvalues():
+        x={
+        html.P('Het is momenteel {}°C'.format(df['temperatuur'].iloc[-1])),
+        html.P('en de lichtintensiteit is {}%'.format(df['licht'].iloc[-1]))}
+        return x
 
     @app.callback(
         dash.dependencies.Output('pos-output-container', 'children'),
@@ -288,8 +343,19 @@ def test():
                     y=df['licht'],
                     mode='lines'
                 ),
-            #go.Layout(margin=dict(t=50))
             ],
+            'layout': {
+                'plot_bgcolor': colors['graphbg'],
+                'paper_bgcolor': colors['background'],
+                'font': {
+                    'color': colors['text']
+                },
+                'margin': {
+                    't': 30,
+                    'l': 25,
+                    'r': 15
+                }
+            }
         }
         return figure
 
