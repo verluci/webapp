@@ -13,9 +13,20 @@ def test():
     with open("settings.json", "r") as jsonFile:
         settings = json.load(jsonFile)
     db = dbs.connect(host="localhost", user="root", db="project21")
-    df = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT 10080', con=db)
+    df = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT %s' % settings["settings"]["limit"], con=db)
     count = int(pd.read_sql('SELECT COUNT(time) FROM data', con=db)['COUNT(time)'][0])
     shouldUpdate = False
+    auto = False
+    def updateAuto():
+        nonlocal auto
+        if settings['settings']['manual'] == False:
+            auto = False
+            print("aardapple")
+        elif settings['settings']['manual'] == True:
+            auto = True
+            print("tomaata")
+    updateAuto()
+
     app = dash.Dash()
     colors = {
         'background': '#0a0908',
@@ -25,12 +36,13 @@ def test():
     app.css.append_css({
         "external_url": "https://rawgit.com/verluci/public_stuff/master/plotly_webapp_style.css"
     })
+    app.title = "Smart zonnescherm"
     app.layout = html.Div(style={}, children=[
         html.Div([
             html.Div(className='container', children=[
                 #header, titel
-                html.Section(className='header', style={'margin': 50}, children=[
-                    html.H1(children='Test'),
+                html.Section(className='header', style={'padding-bottom': 50}, children=[
+                    html.H1(children='Smart zonnescherm'),
                 ]),
                 #body
                 html.Div(className='row', style={'margin': 5}, children=[
@@ -75,9 +87,7 @@ def test():
                                 max=60,
                                 step=1,
                                 value=settings["settings"]["temp"],
-                                marks={
-                                    -30: "-30c",
-                                    60: "60c"
+                                marks={((i*10)-30): '{}'.format((i * 10)-30) for i in range(10)
                                 },
                             ),
                             html.Br(),
@@ -91,14 +101,14 @@ def test():
                             dcc.RadioItems(
                                 id='manualMode',
                                 options=[
-                                    {'label': 'Handmatige modus', 'value': 'True'},
-                                    {'label': 'Automatische modus', 'value': 'False'},
+                                    {'label': 'Handmatige modus', 'value': True},
+                                    {'label': 'Automatische modus', 'value': False},
                                 ],
-                                value=settings['settings']['manual']
+                                value=auto
                             ),
                             html.Div(id='manual-output-container'),
-                            html.P('De huidige temperatuur is'),
-                            html.P('De huidige lichtintensiteit is')
+                            html.Div(id='huidig'),
+
                         ]),
                         html.Div(children=[
                             dcc.Slider(
@@ -187,6 +197,9 @@ def test():
             df2 = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT %s' % toreadout, con=dbn)
             count = newcount
             df = df.append(df2, ignore_index=True)
+            if len(df) >= 10080:
+                df = df.pop(0, ignore_index=True)
+
         figure = {
             'data': [
                 go.Scatter(
@@ -207,7 +220,7 @@ def test():
         with open("settings.json", "w") as jsonFile:
             json.dump(settings, jsonFile)
             jsonFile.truncate()
-        return 'De temperatuurtreshold is {}c'.format(value)
+        return 'De temperatuurtreshold is {}°C'.format(value)
 
     @app.callback(
         dash.dependencies.Output('manual-output-container', 'children'),
@@ -221,7 +234,7 @@ def test():
         with open("settings.json", "w") as jsonFile:
             json.dump(settings, jsonFile)
             jsonFile.truncate()
-        return 'momenteel {} modus'.format(hand)
+        return 'Momenteel staat het doek in {} modus'.format(hand)
 
     @app.callback(
         dash.dependencies.Output('pos-output-container', 'children'),

@@ -1,1 +1,1 @@
-{"settings": {"licht": 79, "temp": -7, "manual": "True", "pos": 16, "maxpos": 28}}
+{"settings": {"licht": 72, "temp": -17, "manual": false, "pos": 15, "maxpos": 28, "limit": 10080}}
