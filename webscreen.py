@@ -15,12 +15,13 @@ def test():
     db = dbs.connect(host="localhost", user="root", db="project21")
     df = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT %s' % settings["settings"]["limit"], con=db)
     count = int(pd.read_sql('SELECT COUNT(time) FROM data', con=db)['COUNT(time)'][0])
-    dfl = pd.read_sql('SELECT * FROM superlicht LIMIT 7', con=db)
-    licht = 0
-    totaal = 0
-    for i in range(7):
-        licht = licht + dfl['zonnig'].iloc[i]
-        totaal = totaal + dfl['total_licht'].iloc[i]
+    #dfl = pd.read_sql('SELECT * FROM superlicht LIMIT 7', con=db)
+    licht = 29
+    totaal = 50
+    totaal = totaal - licht
+    #for i in range(7):
+    #    licht = licht + dfl['zonnig'].iloc[i]
+    #    totaal = totaal + dfl['total_licht'].iloc[i]
     shouldUpdate = False
     auto = False
     def updateAuto():
@@ -178,8 +179,14 @@ def test():
                             html.Div(id='licht-output-container')
                         ])
                     ]),
-                    html.Div(classname='four columns', style={}, children=[
-                        html.Div([dcc.Graph(id='vp_port')])
+                    html.Div(className='four columns', style={}, children=[
+                        dcc.Graph(
+                            id='pie-chart',
+                            figure={
+                                'data': [1, 2],
+                                'labels': ['a', 'b']
+                            }
+                        )
                     ]),
                 ])
             ])
@@ -221,11 +228,6 @@ def test():
             ],
         }
         return figure
-
-    @app.callback(
-        dash.dependencies.Output('vp_port', 'figure'))
-    def update_pie():
-        return {go.Pie(labels=['a', 'b'], values=[5, 6])}
 
     @app.callback(
         dash.dependencies.Output('temp-output-container', 'children'),
