@@ -15,14 +15,15 @@ def test():
     db = dbs.connect(host="localhost", user="root", db="project21")
     df = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT %s' % settings["settings"]["limit"], con=db)
     count = int(pd.read_sql('SELECT COUNT(time) FROM data', con=db)['COUNT(time)'][0])
-    #dfl = pd.read_sql('SELECT * FROM superlicht LIMIT 7', con=db)
+    dfl = pd.read_sql('SELECT * FROM superlicht LIMIT 7', con=db)
 
-    #for i in range(7):
-    #    licht = licht + dfl['zonnig'].iloc[i]
-    #    totaal = totaal + dfl['total_licht'].iloc[i]
-    #
-    totaal = 300
-    licht = 100
+    licht = 0
+    totaal = 0
+
+    for i in range(7):
+        licht = licht + dfl['zonnig'].iloc[i]
+        totaal = totaal + dfl['total_licht'].iloc[i]
+
     donker  = totaal - licht
     licht = licht/totaal*24
     donker = donker/totaal*24
@@ -145,8 +146,8 @@ def test():
                                     value=settings["settings"]["animate"],
                                 ),
                             ]),
-                        ]),
-                    ]),
+                    ])
+                ]),
                 html.Div(className='row', style={'margin': 5}, children=[
                     #blok 5
                     html.Div(className='eight columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
