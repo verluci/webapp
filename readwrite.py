@@ -1,3 +1,10 @@
+"""
+pip install struct
+pip install pyserial
+pip install mysqlclient
+"""
+
+
 import serial as s
 import MySQLdb as dbs
 import time
@@ -16,7 +23,6 @@ class ReadWrite:
                 tempSettings = json.load(jsonFile)
             if(self.ser.inWaiting() >= 1):
                 self.read()
-                print(self.ser.inWaiting(), " wachtende")
             if(self.settings!=tempSettings):
                 self.settings = tempSettings
                 self.write()
@@ -42,8 +48,7 @@ class ReadWrite:
         self.ser.write(packed_data)
         if(self.x == 1):
             self.y = self.y-100
-        print("ran")
-    
+
     def read(self):
         self.readOut = self.ser.read(3)
         latestT = struct.unpack('B', self.readOut[1:2])[0] #leest de temp uit
@@ -51,7 +56,6 @@ class ReadWrite:
         latestP = struct.unpack('b', self.readOut[2:3])[0] #leest de positie van het scherm uit
         db = dbs.connect(host="localhost", user="root", db="project21")
         c = db.cursor()
-        print(latestP)
         c.execute("""INSERT INTO data (temperatuur, licht, positie) VALUES (%s, %s, %s)""",
                   (latestT, latestL, latestP))
         db.commit()

@@ -1,17 +1,27 @@
+"""
+pip install plotly
+pip install dash
+pip install dash-renderer
+pip install dash-html-components
+pip install dash-core-components
+pip install plotly --upgrade
+pip install pandas
+pip install mysqlclient
+"""
 import dash
 from dash.dependencies import Input, Output, Event
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
-import numpy as np
-import datetime
 import json
 import MySQLdb as dbs
 import pandas as pd
 
-def test():
+def run():
+    #haalt settings uit settings.json en zet ze in settings{}
     with open("settings.json", "r") as jsonFile:
         settings = json.load(jsonFile)
+    #haalt info uit de DB
     db = dbs.connect(host="localhost", user="root", db="project21")
     df = pd.read_sql('SELECT * FROM data ORDER BY time DESC LIMIT %s' % settings["settings"]["limit"], con=db)
     count = int(pd.read_sql('SELECT COUNT(time) FROM data', con=db)['COUNT(time)'][0])
@@ -47,6 +57,7 @@ def test():
         "external_url": "https://rawgit.com/verluci/public_stuff/master/plotly_webapp_style.css"
     })
     app.title = "Smart zonnescherm"
+    #layout/HTML deel van de code
     app.layout = html.Div(style={'background-color': '#BBBBBB'}, children=[
         html.Div([
             html.Div(className='container', children=[
@@ -59,7 +70,7 @@ def test():
                     #blok 1
                     html.Div(className='eight columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
                         html.Div(children=[
-                            #grafiek temp
+                            #grafiek temperatuur
                             dcc.Graph(
                                 animate=settings["settings"]["animate"],
                                 id='temp-graph',
@@ -71,6 +82,7 @@ def test():
                                             mode='lines'
                                         )
                                     ],
+                                    #layout van de graph (voor alle graphs hetzelfde)
                                     'layout': {
                                         'plot_bgcolor': colors['graphbg'],
                                         'paper_bgcolor': colors['background'],
@@ -85,11 +97,13 @@ def test():
                                 },
 
                             ),
+                            #interval event dat de grafiek erboven update
                             dcc.Interval(
                                 id='temp-interval',
                                 interval=3000),
                         ]),
-                        html.Div(style={}, children=[
+                        #slider voor temperatuur
+                        html.Div(children=[
                             dcc.Slider(
 
                                 id='temp-slider',
@@ -120,6 +134,7 @@ def test():
                             html.Div(id='huidig'),
 
                         ]),
+                        #slider voor de positie van het doek (man)
                         html.Div(children=[
                             dcc.Slider(
                                 id='pos-slider',
@@ -133,10 +148,11 @@ def test():
                             html.Div(id='pos-output-container')
                         ]),
                     ]),
-                    #blok 4
+                    #blok 3
                     html.Div(className='four columns', style={'padding': 15, 'margin-top': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
                             html.Div(className='buttons', children=[
                                 html.Div(id='animate-output-container'),
+                                #knop voor instellen van animatie (werkt op herstart van programma
                                 dcc.RadioItems(
                                     id='animateTF',
                                     options=[
@@ -149,7 +165,7 @@ def test():
                     ])
                 ]),
                 html.Div(className='row', style={'margin': 5}, children=[
-                    #blok 5
+                    #blok 4
                     html.Div(className='eight columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
                         #grafiek licht
                         html.Div(children=[
@@ -178,10 +194,12 @@ def test():
                                     }
                                 }
                             ),
+                            #event voor updaten bovenstaande grafiek
                             dcc.Interval(
                                 id='licht-interval',
                                 interval=3000),
                         ]),
+                        #licht slider
                         html.Div(children=[
                             dcc.Slider(
                                 id='licht-slider',
@@ -195,9 +213,10 @@ def test():
                             html.Div(id='licht-output-container')
                         ])
                     ]),
-                    #blok 6
+                    #blok 5
                     html.Div(className='four columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
                         html.H5('Verdeling zonuren'),
+                        #grafiekje van zonuren per dag
                         dcc.Graph(
                             id='zon-per-dag',
                             figure={
@@ -233,7 +252,8 @@ def test():
     #)
 
 
-
+#blok 1 callback
+    #temp grafiek
     @app.callback(Output('temp-graph', 'figure'),
                   events=[Event('temp-interval', 'interval')])
     def update_graph_live():
@@ -274,6 +294,7 @@ def test():
         }
         return figure
 
+    #temp slider
     @app.callback(
         dash.dependencies.Output('temp-output-container', 'children'),
         [dash.dependencies.Input('temp-slider', 'value')])
@@ -284,6 +305,8 @@ def test():
             jsonFile.truncate()
         return 'De temperatuurtreshold is {}°C'.format(value)
 
+#blok 2
+    #manual button
     @app.callback(
         dash.dependencies.Output('manual-output-container', 'children'),
         [dash.dependencies.Input('manualMode', 'value')])
@@ -298,16 +321,7 @@ def test():
             jsonFile.truncate()
         return 'Momenteel staat het doek in {} modus'.format(hand)
 
-    @app.callback(
-        dash.dependencies.Output('animate-output-container', 'children'),
-        [dash.dependencies.Input('animateTF', 'value')])
-    def update_output(value):
-        settings["settings"]["animate"] = value
-        with open("settings.json", "w") as jsonFile:
-            json.dump(settings, jsonFile)
-            jsonFile.truncate()
-        return 'Zet live grafieken (na verversing):'
-
+    #positie slider
     @app.callback(
         dash.dependencies.Output('pos-output-container', 'children'),
         [dash.dependencies.Input('pos-slider', 'value')])
@@ -318,7 +332,19 @@ def test():
             jsonFile.truncate()
         return 'Zet het doek op {}cm van de grond'.format(value)
 
+    #blok 3
+    @app.callback(
+        dash.dependencies.Output('animate-output-container', 'children'),
+        [dash.dependencies.Input('animateTF', 'value')])
+    def update_output(value):
+        settings["settings"]["animate"] = value
+        with open("settings.json", "w") as jsonFile:
+            json.dump(settings, jsonFile)
+            jsonFile.truncate()
+        return 'Zet live grafieken (na verversing):'
 
+#blok 4
+    #grafiek licht
     @app.callback(Output('licht-graph', 'figure'),
                   events=[Event('licht-interval', 'interval')])
     def update_graph_live():
@@ -345,6 +371,7 @@ def test():
         }
         return figure
 
+    #slider licht
     @app.callback(
         dash.dependencies.Output('licht-output-container', 'children'),
         [dash.dependencies.Input('licht-slider', 'value')])
@@ -357,4 +384,4 @@ def test():
 
     app.run_server()
 
-test()
+run()
