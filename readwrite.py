@@ -3,11 +3,10 @@ import MySQLdb as dbs
 import time
 import struct
 import json
-import serial.tools.list_ports
 
 class ReadWrite:
     def __init__(self):
-        self.ser = s.Serial('COM5', baudrate=19200) #verbind met de arduino op port 5, zet de baudrate naar 19200
+        self.ser = s.Serial('COM6', baudrate=19200) #verbind met de arduino op port 5, zet de baudrate naar 19200
         with open("settings.json", "r") as jsonFile: #opent json en leest settings er uit
             self.settings = json.load(jsonFile)
 

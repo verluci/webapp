@@ -145,16 +145,8 @@ def test():
                                     value=settings["settings"]["animate"],
                                 ),
                             ]),
-                        html.Div(className='currentvalues')#, children=[
-                            #html.P('Het is momenteel {}°C'.format(df['temperatuur'].iloc[-1])),
-                            #html.P('en de lichtintensiteit is {}%'.format(df['licht'].iloc[-1]))
                         ]),
-                        dcc.Interval(
-                            id='currentvalues',
-                            interval=1000),
-
-                    ])
-                ]),
+                    ]),
                 html.Div(className='row', style={'margin': 5}, children=[
                     #blok 5
                     html.Div(className='eight columns', style={'padding': 15, 'background-color': '#0a0908', 'color': '#BBBBBB'}, children=[
@@ -226,11 +218,13 @@ def test():
                                 }
                             }
                         )
-                    ]),
+                    ])
                 ])
             ])
         ])
     ])
+
+
 
     #@app.callback(
     #    dash.dependencies.Output('changeToButton', 'children'),
@@ -312,15 +306,6 @@ def test():
             json.dump(settings, jsonFile)
             jsonFile.truncate()
         return 'Zet live grafieken (na verversing):'
-
-    @app.callback(
-        dash.dependencies.Output('currentvalues', 'children'),
-        [dash.dependencies.Input('currentvalue', 'Event')])
-    def update_currentvalues():
-        x={
-        html.P('Het is momenteel {}°C'.format(df['temperatuur'].iloc[-1])),
-        html.P('en de lichtintensiteit is {}%'.format(df['licht'].iloc[-1]))}
-        return x
 
     @app.callback(
         dash.dependencies.Output('pos-output-container', 'children'),
